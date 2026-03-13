@@ -29,6 +29,10 @@ npm run preview # Preview production build
 
 Designed for deployment on **Cloudflare Pages** (static site).
 
+Public deployment:
+
+https://hfs-analyzer-web.pages.dev
+
 ## Architecture
 
 ```
