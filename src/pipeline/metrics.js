@@ -11,6 +11,7 @@ import { label1d } from '../dsp/label.js';
  *
  * @param {Float64Array} tonicSignal - Tonic成分（ベースライン）
  * @param {Uint8Array} pursingMask - 口すぼめ刺激マスク
+ * @param {Uint8Array|null} [excludeMask=null] - 除外マスク（瞬き・遷移区間など）
  * @returns {{
  *   meanBaseline: number,
  *   stdBaseline: number,
@@ -20,30 +21,35 @@ import { label1d } from '../dsp/label.js';
  *   baselineElevation: number
  * }}
  */
-export function analyzeTonicMetrics(tonicSignal, pursingMask) {
+export function analyzeTonicMetrics(tonicSignal, pursingMask, excludeMask = null) {
   const n = tonicSignal.length;
 
   // 全体統計
   let sum = 0, min = Infinity, max = -Infinity;
+  let validCount = 0;
   for (let i = 0; i < n; i++) {
+    if (excludeMask && excludeMask[i]) continue;
     sum += tonicSignal[i];
     if (tonicSignal[i] < min) min = tonicSignal[i];
     if (tonicSignal[i] > max) max = tonicSignal[i];
+    validCount++;
   }
-  const meanBaseline = sum / n;
+  const meanBaseline = validCount > 0 ? sum / validCount : 0;
 
   let sumSq = 0;
   for (let i = 0; i < n; i++) {
+    if (excludeMask && excludeMask[i]) continue;
     const d = tonicSignal[i] - meanBaseline;
     sumSq += d * d;
   }
-  const stdBaseline = Math.sqrt(sumSq / n);
+  const stdBaseline = validCount > 0 ? Math.sqrt(sumSq / validCount) : 0;
 
   // 刺激中 vs 非刺激中
   let sumPursing = 0, countPursing = 0;
   let sumNoPursing = 0, countNoPursing = 0;
 
   for (let i = 0; i < n; i++) {
+    if (excludeMask && excludeMask[i]) continue;
     if (pursingMask && pursingMask[i]) {
       sumPursing += tonicSignal[i];
       countPursing++;
@@ -60,7 +66,7 @@ export function analyzeTonicMetrics(tonicSignal, pursingMask) {
   return {
     meanBaseline,
     stdBaseline,
-    rangeBaseline: max - min,
+    rangeBaseline: validCount > 0 ? (max - min) : 0,
     meanDuringPursing,
     meanNoPursing,
     baselineElevation,

@@ -145,7 +145,7 @@ async function runAnalysis(videoFile) {
 
     // ── Step 9: メトリクス集計 ──
     updateProgress(0, 0, t('progress.computingMetrics'));
-    const tonicMetrics = analyzeTonicMetrics(tonic, pursingMask);
+    const tonicMetrics = analyzeTonicMetrics(tonic, pursingMask, combinedExclude);
     const clonicMetrics = analyzeClonicMetrics(clonic, spasmResult.spasmMask, pursingMask, fps, combinedExclude);
 
     // Tonic追加統計
