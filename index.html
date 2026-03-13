@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HFS Analyzer - Hemifacial Spasm Quantification</title>
+  <link rel="stylesheet" href="/src/styles/main.css" />
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="header-tools">
+        <label for="lang-select" data-i18n="language.label">Language</label>
+        <select id="lang-select" aria-label="Language">
+          <option value="en" data-i18n="language.en">English</option>
+          <option value="ja" data-i18n="language.ja">Japanese</option>
+        </select>
+      </div>
+      <h1 data-i18n="header.title">HFS Analyzer</h1>
+      <p data-i18n="header.subtitle">Automated tonic-clonic decomposition of hemifacial spasm severity from smartphone video</p>
+      <span class="privacy-badge" data-i18n="header.privacy">All processing runs locally &mdash; no data leaves your device</span>
+    </header>
+
+    <section class="notice-panel" aria-live="polite">
+      <h2 data-i18n="notice.title">Usage Notice</h2>
+      <ul>
+        <li data-i18n="notice.items.notDiagnostic">This tool is for research/support use and is not a standalone diagnostic device.</li>
+        <li data-i18n="notice.items.captureCondition">Use clear frontal face video with stable framing and adequate lighting.</li>
+        <li data-i18n="notice.items.reviewRequired">Always interpret outputs together with clinical findings and physician judgment.</li>
+        <li data-i18n="notice.items.privacy">Do not include personally identifiable information in filenames or exported data when sharing.</li>
+      </ul>
+    </section>
+
+    <section class="legal-panel" aria-live="polite">
+      <h2 data-i18n="legal.title">Copyright, DOI, and Terms</h2>
+      <ul>
+        <li data-i18n="legal.items.copyright">Copyright (c) 2026 Kei Nomura and contributors. Released under the MIT License.</li>
+        <li>
+          <span data-i18n="legal.items.doiLabel">Method reference DOI (HFS_analysis_app):</span>
+          <a href="https://doi.org/10.5281/zenodo.18845312" target="_blank" rel="noopener noreferrer">10.5281/zenodo.18845312</a>
+        </li>
+        <li data-i18n="legal.items.terms">Use is limited to research and clinical decision-support. Not a standalone diagnostic device.</li>
+        <li data-i18n="legal.items.targetUsers">Intended users are clinicians and researchers; patient self-interpretation is not an intended use.</li>
+      </ul>
+    </section>
+
+    <!-- Upload -->
+    <section id="upload-section">
+      <div id="upload-zone">
+        <div class="upload-icon">&#128249;</div>
+        <p data-i18n-html="upload.dropPromptHtml"><strong>Drop video file here</strong> or click to browse</p>
+        <p data-i18n="upload.accepts">Accepts .mp4, .mov, .avi</p>
+      </div>
+      <input type="file" id="file-input" accept="video/*" />
+
+      <!-- Settings -->
+      <details class="settings-panel">
+        <summary data-i18n="settings.summary">Advanced Settings</summary>
+                <div class="settings-grid">
+                  <div>
+                    <label for="fps-input" data-i18n-title="settings.fps.tooltip" title="The frame rate (frames per second) at which the video should be processed. This should match the source video's frame rate for accurate analysis.">
+                      <span data-i18n="settings.fps.label">FPS</span> <span class="info-icon">&#9432;</span>
+                    </label>
+                    <input type="number" id="fps-input" value="60" min="1" max="240" step="1" />
+                  </div>
+                  <div>
+                    <label for="tonic-window-input" data-i18n-title="settings.tonicWindow.tooltip" title="The size of the moving average window (in seconds) used to calculate the slow-moving tonic baseline of the signal.">
+                      <span data-i18n="settings.tonicWindow.label">Tonic Window (s)</span> <span class="info-icon">&#9432;</span>
+                    </label>
+                    <input type="number" id="tonic-window-input" value="3.0" min="0.5" max="10" step="0.5" />
+                  </div>
+                  <div>
+                    <label for="threshold-input" data-i18n-title="settings.threshold.tooltip" title="The threshold for detecting a clonic spasm. A spasm is detected if the signal exceeds this many multiples of its standard deviation.">
+                      <span data-i18n="settings.threshold.label">Threshold (xSD)</span> <span class="info-icon">&#9432;</span>
+                    </label>
+                    <input type="number" id="threshold-input" value="0.5" min="0.1" max="5" step="0.1" />
+                  </div>
+                  <div>
+                    <label for="min-duration-input" data-i18n-title="settings.minDuration.tooltip" title="The minimum number of consecutive frames a spasm must last to be counted as a valid episode.">
+                      <span data-i18n="settings.minDuration.label">Min Duration (frames)</span> <span class="info-icon">&#9432;</span>
+                    </label>
+                    <input type="number" id="min-duration-input" value="4" min="1" max="30" step="1" />
+                  </div>
+                  <div>
+                    <label for="transition-input" data-i18n-title="settings.transition.tooltip" title="The duration (in seconds) at the beginning and end of a pursing event that is excluded from spasm analysis to avoid artifacts from the movement itself.">
+                      <span data-i18n="settings.transition.label">Transition (s)</span> <span class="info-icon">&#9432;</span>
+                    </label>
+                    <input type="number" id="transition-input" value="1.0" min="0" max="3" step="0.5" />
+                  </div>
+                </div>      </details>
+    </section>
+
+    <!-- Progress -->
+    <section id="progress-section">
+      <div class="progress-track">
+        <div id="progress-bar"></div>
+      </div>
+      <div id="progress-text"></div>
+    </section>
+
+    <!-- Results -->
+    <section id="results-section">
+      <h2 data-i18n="results.title">Analysis Results</h2>
+      <div id="summary-cards"></div>
+
+      <div class="chart-container">
+        <h3 data-i18n="results.charts.apertureTitle">Eye Aperture (Healthy vs Affected)</h3>
+        <canvas id="chart-aperture"></canvas>
+      </div>
+
+      <div class="chart-container">
+        <h3 data-i18n="results.charts.rdTitle">Relative Difference + Tonic Baseline</h3>
+        <canvas id="chart-rd"></canvas>
+      </div>
+
+      <div class="chart-container">
+        <h3 data-i18n="results.charts.clonicTitle">Clonic Component + Spasm Detection</h3>
+        <canvas id="chart-clonic"></canvas>
+      </div>
+
+      <div class="chart-container">
+        <h3 data-i18n="results.charts.pursingTitle">Mouth Pursing (MAR)</h3>
+        <canvas id="chart-pursing"></canvas>
+      </div>
+    </section>
+
+    <!-- Export -->
+    <section id="export-section">
+      <button id="btn-download-csv" class="btn" data-i18n="export.downloadCsv">Download CSV</button>
+    </section>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
