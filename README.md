@@ -1,5 +1,8 @@
 # HFS Analyzer Web
 
+[![Public App](https://img.shields.io/badge/App-hfs--analyzer--web.pages.dev-2563eb)](https://hfs-analyzer-web.pages.dev)
+[![Method DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18845312.svg)](https://doi.org/10.5281/zenodo.18845312)
+
 Browser-based automated quantification of hemifacial spasm (HFS) severity from smartphone video. All video processing runs entirely in your browser using MediaPipe — **no data leaves your device**.
 
 ## Features
